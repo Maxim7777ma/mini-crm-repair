@@ -1,0 +1,347 @@
+{% extends "base.html" %}
+{% block title %}Вход — Mini CRM{% endblock %}
+
+{% block content %}
+<section class="log-page">
+  <div class="log-card" role="region" aria-labelledby="log-title">
+    <div class="log-side" aria-hidden="true">
+      <div class="log-blob">
+        <!-- Живая пульбошка -->
+        <svg class="log-blob-svg" viewBox="0 0 800 400" aria-hidden="true" focusable="false">
+          <defs>
+            <!-- Мягкий голубой градиент -->
+            <linearGradient id="blob-grad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#60a5fa" stop-opacity="0.75" />
+              <stop offset="100%" stop-color="#93c5fd" stop-opacity="0.45" />
+            </linearGradient>
+
+            <!-- Движение форм за счёт «волн» -->
+            <filter id="blob-wobble" x="-20%" y="-20%" width="140%" height="140%">
+              <feTurbulence
+                type="fractalNoise"
+                baseFrequency="0.008"
+                numOctaves="2"
+                seed="3"
+                result="noise"
+              >
+                <animate
+                  attributeName="baseFrequency"
+                  values="0.008;0.012;0.009;0.008"
+                  dur="14s"
+                  repeatCount="indefinite"
+                />
+              </feTurbulence>
+              <feDisplacementMap
+                in="SourceGraphic"
+                in2="noise"
+                scale="28"
+                xChannelSelector="R"
+                yChannelSelector="G"
+              >
+                <animate
+                  attributeName="scale"
+                  values="18;32;22;18"
+                  dur="14s"
+                  repeatCount="indefinite"
+                />
+              </feDisplacementMap>
+            </filter>
+
+            <!-- Лёгкое свечение -->
+            <filter id="blob-glow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="28" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+
+          <!-- Подложка-свечение (размытая) -->
+          <g filter="url(#blob-glow)" opacity="0.35">
+            <circle cx="400" cy="200" r="150" fill="#60a5fa" />
+          </g>
+
+          <!-- Основная пулька с «вилянием» формы -->
+          <g filter="url(#blob-wobble)" opacity="0.8">
+            <circle cx="400" cy="200" r="140" fill="url(#blob-grad)">
+              <animate
+                attributeName="r"
+                values="130;145;135;130"
+                dur="10s"
+                repeatCount="indefinite"
+              />
+            </circle>
+          </g>
+        </svg>
+      </div>
+
+      <h2>С возвращением!</h2>
+      <p>Войдите, чтобы управлять тикетами и клиентами в вашем Mini CRM.</p>
+      <ul class="log-list">
+        <li>⚡ Быстрый доступ к заявкам</li>
+        <li>🔎 Поиск и фильтры</li>
+        <li>🛠️ Мгновенное обновление статусов</li>
+      </ul>
+    </div>
+
+    <div class="log-formwrap">
+      <h1 id="log-title" class="log-title">Войти</h1>
+
+      <!-- Page-scoped стили (уникальные классы) -->
+      <style>
+        .log-page {
+          min-height: calc(100vh - 140px);
+          display: grid;
+          place-items: center;
+          padding: 24px;
+          background:
+            radial-gradient(900px 360px at 100% -10%, #f6fbff, transparent 60%),
+            radial-gradient(800px 300px at -20% -10%, #f4fbff, transparent 50%);
+        }
+
+        .log-card {
+          width: min(980px, 100%);
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 0;
+          background: #fff;
+          border: 1px solid #e7eef6;
+          border-radius: 18px;
+          box-shadow: 0 16px 40px rgba(30, 70, 150, 0.08);
+          overflow: hidden;
+        }
+
+        @media (max-width: 900px) {
+          .log-card { grid-template-columns: 1fr; }.log-page{padding:0px;}
+        }
+
+        .log-side {
+          padding: 28px;
+          background: linear-gradient(180deg, #f7fbff, #ffffff);
+          border-right: 1px solid #eef3fb;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+        }
+
+        .log-blob {
+          height: 160px;
+          border-radius: 14px;
+          background:
+            radial-gradient(160px 80px at 0% 0%, #e6f1ff, transparent 60%),
+            radial-gradient(200px 120px at 100% 40%, #f2fbff, transparent 55%),
+            #ffffff;
+          border: 1px solid #e6effa;
+          box-shadow: 0 14px 32px rgba(30, 70, 150, 0.07);
+          margin-bottom: 16px;
+          position: relative;     /* важно для SVG */
+          overflow: hidden;       /* важно для SVG */
+        }
+
+        .log-blob-svg {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          pointer-events: none;
+        }
+
+        .log-side h2 {
+          margin: 0 0 6px;
+          font-size: 22px;
+          font-weight: 800;
+          letter-spacing: 0.2px;
+        }
+
+        .log-side p { margin: 0 0 10px; color: #556070; }
+        .log-list { margin: 8px 0 0; padding-left: 20px; color: #3d495a; }
+
+        .log-formwrap { padding: 28px 22px 20px; }
+        .log-title { margin: 0.25rem 0 1rem; font-size: 26px; font-weight: 800; letter-spacing: 0.2px; }
+
+        .log-form { display: grid; gap: 14px; }
+        .log-field { display: grid; gap: 6px; }
+        .log-label { font-size: 14px; color: #64748b; }
+
+        .log-inputwrap { position: relative; }
+
+        .log-input {
+          width: 100%;
+          padding: 12px 44px 12px 12px;
+          border-radius: 12px;
+          border: 1px solid #e5e7eb;
+          background: #fff;
+          color: #0f172a;
+          font: inherit;
+          outline: none;
+          transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .log-input:focus { border-color: #93c5fd; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15); }
+        .log-input.ok { border-color: #34d399; }
+        .log-input.err { border-color: #ef4444; }
+
+        .log-eye {
+          position: absolute;
+          right: 8px;
+          top: 50%;
+          transform: translateY(-50%);
+          appearance: none;
+          border: 1px solid #e6ebf3;
+          background: #ffffff;
+          color: #334155;
+          padding: 8px 10px;
+          border-radius: 10px;
+          cursor: pointer;
+        }
+
+        .log-eye:hover { background: #f5f8ff; }
+
+        .log-inline {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          flex-wrap: wrap;
+        }
+
+        .log-remember {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          color: #4b5563;
+          font-size: 14px;
+        }
+
+        .log-link { color: #2563eb; text-decoration: none; }
+        .log-link:hover { text-decoration: underline; }
+
+        .log-submit {
+          width: 100%;
+          margin-top: 4px;
+          padding: 12px 16px;
+          border-radius: 12px;
+          border: 1px solid #3b82f6;
+          background: #3b82f6;
+          color: #fff;
+          font-weight: 800;
+          cursor: pointer;
+          transition: filter 0.15s ease, transform 0.04s ease;
+        }
+
+        .log-submit:hover { filter: brightness(0.97); }
+        .log-submit:active { transform: translateY(1px); }
+        .log-submit[disabled] { opacity: 0.65; cursor: not-allowed; }
+
+        .log-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          margin-top: 6px;
+        }
+
+        .log-msg { min-height: 22px; color: #2563eb; }
+        .log-msg.err { color: #dc2626; }
+        .log-caps { font-size: 12px; color: #b45309; display: none; }
+        .log-help { font-size: 13px; color: #64748b; }
+        .log-actions { display: flex; gap: 10px; }
+
+        .log-demo {
+          appearance: none;
+          border: 1px solid #e5e7eb;
+          background: #fff;
+          color: #1f2937;
+          padding: 8px 12px;
+          border-radius: 10px;
+          cursor: pointer;
+        }
+
+        .log-demo:hover { background: #f8fafc; }
+
+        .log-foot { margin-top: 10px; color: #6b7280; }
+
+        @media (prefers-reduced-motion: reduce) {
+          .log-blob-svg { display: none; }
+        }
+      </style>
+
+      <form id="login-form" class="log-form" novalidate>
+        <div class="log-field">
+          <label class="log-label" for="log-email">Email</label>
+          <div class="log-inputwrap">
+            <input
+              id="log-email"
+              class="log-input"
+              type="email"
+              name="email"
+              placeholder="you@company.com"
+              autocomplete="username"
+              required
+            />
+          </div>
+        </div>
+
+        <div class="log-field">
+          <label class="log-label" for="log-pass">Пароль</label>
+          <div class="log-inputwrap">
+            <input
+              id="log-pass"
+              class="log-input"
+              type="password"
+              name="password"
+              placeholder="••••••••"
+              autocomplete="current-password"
+              required
+            />
+            <button
+              type="button"
+              id="log-eye"
+              class="log-eye"
+              aria-pressed="false"
+              title="Показать пароль"
+            >👁</button>
+          </div>
+          <div id="log-caps" class="log-caps">Внимание: включён Caps Lock</div>
+        </div>
+
+        <div class="log-inline">
+          <label class="log-remember">
+            <input type="checkbox" id="log-remember" />
+            Запомнить email
+          </label>
+          <div class="log-actions">
+            <button type="button" id="log-demo" class="log-demo">Демо</button>
+            <a class="log-link" href="/ui/register">Регистрация</a>
+          </div>
+        </div>
+
+        <button type="submit" id="log-submit" class="log-submit">Войти</button>
+
+        <div class="log-row">
+          <p id="login-msg" class="log-msg" aria-live="polite"></p>
+          <span class="log-help">Нужна помощь? Напишите админу.</span>
+        </div>
+
+        <!-- a11y live region -->
+        <div
+          id="log-live"
+          style="position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden"
+          aria-live="assertive"
+        ></div>
+      </form>
+
+      <p class="log-foot">
+        Нет аккаунта?
+        <a class="log-link" href="/ui/register">Зарегистрируйтесь</a>
+      </p>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+  <!-- core.js подключён в base.html; здесь только страничный скрипт -->
+  <script src="/static/js/login.js?v=11" defer></script>
+{% endblock %}

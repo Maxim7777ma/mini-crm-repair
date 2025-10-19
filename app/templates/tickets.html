@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+{% block title %}Тикеты — Mini CRM{% endblock %}
+{% block content %}
+
+<section class="page-head">
+  <div>
+    <h1>Тикеты</h1>
+    <p class="muted">Список заявок с поиском, статусами и пагинацией. Фильтры сохраняются.</p>
+  </div>
+  <div class="toolbar">
+    <button id="reload" class="btn">Обновить</button>
+  </div>
+</section>
+
+<section class="filters card">
+  <div class="filters-bar">
+    <!-- Поиск (в черновик) -->
+    <div class="input-with-icon">
+      <svg class="i" viewBox="0 0 24 24" fill="none"><path d="M21 21l-4.3-4.3M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <input type="text" id="q" placeholder="Поиск по заголовку...">
+    </div>
+
+    <!-- Статусы: мультивыбор -->
+    <div class="menu-wrap inline">
+      <span class="label">Статусы</span>
+      <button id="statusBtn" class="btn btn-chip menu-btn">
+        <svg class="i" viewBox="0 0 24 24" fill="none"><path d="M4 8h16M7 12h10M10 16h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <span id="statusBtnText">Любые</span>
+        <svg class="i caret" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.6"/></svg>
+      </button>
+    </div>
+
+    <!-- Дата -->
+    <div class="menu-wrap inline">
+      <span class="label">Дата создания</span>
+      <button id="dateBtn" class="btn btn-chip menu-btn">
+        <span id="dateBtnText">Любая дата</span>
+        <svg class="i caret" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.6"/></svg>
+      </button>
+    </div>
+
+    <!-- Размер страницы -->
+    <div class="menu-wrap inline">
+      <span class="label">На странице</span>
+      <button id="sizeBtn" class="btn btn-chip menu-btn">
+        <span id="sizeBtnText">20</span>
+        <svg class="i caret" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.6"/></svg>
+      </button>
+    </div>
+  </div>
+    <div class="filters-btn-results1">
+        <div class="ta-right">
+            <button class="btn btn-primary" id="applyFilters">Применить</button>
+            <button class="btn btn-ghost" id="resetFilters">Сбросить</button>
+        </div>
+        <div id="filtersSummary" class="muted small" style="margin-top:6px"></div>
+    </div>
+</section>
+
+<section class="card">
+  <div class="table-wrap">
+    <table class="table table-tight">
+      <thead>
+        <tr>
+          <th>ID</th><th>Заголовок</th><th>Статус</th>
+          <th>Клиент</th><th>Исполнитель</th><th>Визит</th><th>Создан</th><th class="ta-right">Действия</th>
+        </tr>
+      </thead>
+      <tbody id="ticket-rows"></tbody>
+    </table>
+  </div>
+
+  <div class="pagination page-nav">
+    <button class="btn" id="prev">Назад</button>
+    <span id="page-info" class="muted"></span>
+    <button class="btn" id="next">Вперёд</button>
+  </div>
+</section>
+
+<!-- Админ: Создать тикет (аккордеон) -->
+<section id="admin-panel" class="card" hidden>
+  <details>
+    <summary style="cursor:pointer;font-weight:700">Создать тикет (Админ)</summary>
+    <form id="new-ticket-form" class="form-grid" style="margin-top:12px">
+      <label>Заголовок
+        <input type="text" name="title" required />
+      </label>
+      <label>Описание
+        <input type="text" name="description" />
+      </label>
+      <label>Client ID
+        <input type="number" name="client_id" required />
+      </label>
+      <label>Назначить
+        <div class="menu-wrap inline" style="display:block">
+          <button type="button" id="assignBtn" class="btn menu-btn" style="width:100%">
+            <span id="assignText">(не назначать)</span>
+            <svg class="i caret" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.6"/></svg>
+          </button>
+          <input type="hidden" name="assignee_id" />
+        </div>
+      </label>
+      <label>Дата/время визита
+        <input type="datetime-local" name="scheduled_at" />
+      </label>
+      <div class="actions">
+        <button type="submit" class="btn btn-primary">Создать</button>
+        <p id="create-msg" class="form-msg"></p>
+      </div>
+    </form>
+  </details>
+</section>
+
+<!-- Модалка «Подробнее» -->
+<div id="ticket-modal" class="modal" hidden aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="tm-title">
+  <div class="modal__backdrop" data-close></div>
+  <div class="modal__content" role="document">
+    <header class="modal__head">
+      <h3 id="tm-title">Тикет</h3>
+      <button class="btn" id="tm-close" aria-label="Закрыть">✕</button>
+    </header>
+
+    <div class="modal__body">
+      <dl class="tm-grid">
+        <div><dt>ID</dt><dd id="tm-id">—</dd></div>
+        <div><dt>Заголовок</dt><dd id="tm-title-text">—</dd></div>
+        <div><dt>Описание</dt><dd id="tm-desc">—</dd></div>
+        <div><dt>Статус</dt><dd id="tm-status">—</dd></div>
+        <div><dt>Клиент</dt><dd id="tm-client">—</dd></div>
+        <div><dt>Исполнитель</dt><dd id="tm-assignee">—</dd></div>
+        <div><dt>Визит</dt><dd id="tm-scheduled">—</dd></div>
+        <div><dt>Создан</dt><dd id="tm-created">—</dd></div>
+        <div><dt>Обновлён</dt><dd id="tm-updated">—</dd></div>
+      </dl>
+
+      <details class="tm-edit">
+        <summary>Редактировать (заголовок / описание / визит)</summary>
+        <form id="tm-edit-form" class="form-grid" style="margin-top:10px">
+          <label>Заголовок
+            <input type="text" name="title" />
+          </label>
+          <label>Описание
+            <input type="text" name="description" />
+          </label>
+          <label>Дата/время визита
+            <input type="datetime-local" name="scheduled_at" />
+          </label>
+          <div class="actions">
+            <button class="btn btn-primary" type="submit">Сохранить</button>
+            <button class="btn" type="button" id="tm-edit-cancel">Отмена</button>
+            <p class="form-msg" id="tm-edit-msg"></p>
+          </div>
+        </form>
+      </details>
+    </div>
+  </div>
+
+  <!-- локальные стили модалки -->
+  <style>
+    .modal[hidden]{ display:none; }
+    .modal{ position:fixed; inset:0; z-index:3000; }
+    .modal__backdrop{ position:absolute; inset:0; background:rgba(15,23,42,.42); }
+    .modal__content{
+      position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+      width:min(760px, 92vw); max-height:86vh; overflow:auto;
+      background:#fff; border:1px solid #e5eaf3; border-radius:14px; box-shadow:0 20px 60px rgba(0,0,0,.18);
+    }
+    .modal__head{ display:flex; align-items:center; justify-content:space-between; padding:12px 14px; border-bottom:1px solid #eef2f6; }
+    .modal__body{ padding:14px; }
+    .tm-grid{ display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px 14px; margin:0; }
+    .tm-grid dt{ color:#64748b; font-size:.9rem; }
+    .tm-grid dd{ margin:0; }
+
+    .menu-wrap.inline {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    }
+    @media (max-width: 680px){ .tm-grid{ grid-template-columns:1fr; } }
+    .tm-edit summary{ cursor:pointer; margin-top:8px; }
+  </style>
+</div>
+
+{% endblock %}
+{% block scripts %}
+  <script src="/static/js/tickets.js?v=12" defer></script>
+{% endblock %}

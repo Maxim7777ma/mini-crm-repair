@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% block title %}Регистрация — Mini CRM{% endblock %}
+
+{% block content %}
+<section class="reg-page">
+  <div class="reg-card" role="region" aria-labelledby="reg-title">
+    <h1 id="reg-title" class="reg-title">Создание аккаунта</h1>
+
+    <!-- Встроенные page-specific стили (уникальные классы, без конфликтов) -->
+    <style>
+      .reg-page{
+        min-height:calc(100vh - 140px); display:grid; place-items:center; padding:24px;
+        background: radial-gradient(900px 360px at 80% -10%, #f6fbff, transparent 60%), transparent;
+      }
+      .reg-card{
+        width:min(680px, 100%); background:#fff; border:1px solid #e7eef6; border-radius:16px;
+        box-shadow:0 14px 36px rgba(30,70,150,.08); padding:22px 20px;
+      }
+      .reg-title{ margin:.25rem 0 1rem; font-size:26px; font-weight:800; letter-spacing:.2px }
+      .reg-form{ display:grid; gap:14px }
+      .reg-row{ display:grid; gap:12px; grid-template-columns:1fr 1fr }
+      @media (max-width: 760px){ .reg-row{ grid-template-columns:1fr } .reg-page{padding:0px} }
+
+      .reg-field{ display:grid; gap:6px }
+      .reg-label{ font-size:14px; color:#64748b }
+      .reg-input{
+        width:100%; padding:11px 12px; border-radius:12px; border:1px solid #e5e7eb; background:#fff;
+        font:inherit; color:#0f172a; outline:none; transition:border-color .15s ease, box-shadow .15s ease
+      }
+      .reg-input:focus{ border-color:#93c5fd; box-shadow:0 0 0 3px rgba(59,130,246,.15) }
+      .reg-input.ok{ border-color:#34d399 }
+      .reg-input.err{ border-color:#ef4444 }
+
+      .reg-inline{
+        display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+        justify-content:space-between;
+      }
+
+      /* Переключатель роли */
+      .reg-role{
+        display:inline-flex; position:relative; border:1px solid #e5e7eb; border-radius:999px; padding:4px; background:#f8fafc; justify-content: space-around;
+      }
+      .reg-role-btn{
+        position:relative; z-index:1;
+        appearance:none; border:0; background:transparent; cursor:pointer;
+        padding:8px 14px; border-radius:999px; font-weight:700; color:#334155;
+      }
+      .reg-role-btn[aria-pressed="true"]{ color:#0f172a }
+      .reg-role-thumb{
+        position:absolute; inset:4px; width:50%; border-radius:999px; background:#fff; border:1px solid #e5e7eb;
+        box-shadow:0 3px 10px rgba(0,0,0,.06); transform:translateX(0); transition:transform .2s ease;
+      }
+      .reg-role--right .reg-role-thumb{ transform:translateX(100%) }
+
+      /* Индикатор силы пароля */
+      .reg-meter{ display:grid; gap:6px }
+      .reg-meter-bar{
+        height:10px; border-radius:999px; background:#eef2f7; overflow:hidden; border:1px solid #e5e7eb;
+      }
+      .reg-meter-fill{
+        height:100%; width:0%; background:linear-gradient(90deg,#f43f5e,#f59e0b,#22c55e);
+        transition:width .2s ease;
+      }
+      .reg-meter-label{ font-size:12px; color:#64748b }
+
+      /* Критерии */
+      .reg-criteria{ margin:0; padding-left:18px; color:#475569 }
+      .reg-criteria li{ margin:4px 0 }
+      .reg-criteria .ok{ color:#16a34a }
+      .reg-criteria .bad{ color:#b91c1c }
+
+      /* Сообщения/ошибки/подсказки */
+      .reg-msg{ min-height:22px; color:#2563eb; }
+      .reg-msg.err{ color:#dc2626 }
+      .reg-hint{ font-size:12px; color:#64748b; margin-top:-4px }
+
+      /* Кнопка */
+      .reg-submit{
+        margin-top:6px; padding:12px 16px; border-radius:12px; border:1px solid #3b82f6; background:#3b82f6; color:#fff;
+        font-weight:700; cursor:pointer;
+      }
+      .reg-submit[disabled]{ opacity:.6; cursor:not-allowed }
+
+      /* A11y live region */
+      .reg-live{ position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden }
+    </style>
+
+    <form id="reg-form" class="reg-form" novalidate>
+      <!-- email -->
+      <div class="reg-field">
+        <label class="reg-label" for="reg-email">Email</label>
+        <input id="reg-email" class="reg-input" type="email" name="email" autocomplete="email" required />
+        <div class="reg-hint">Рабочая почта предпочтительнее. Одноразовые домены запрещены.</div>
+      </div>
+
+      <!-- пароли -->
+      <div class="reg-row">
+        <div class="reg-field">
+          <label class="reg-label" for="reg-pass">Пароль</label>
+          <input id="reg-pass" class="reg-input" type="password" name="password" minlength="8" required autocomplete="new-password" />
+        </div>
+        <div class="reg-field">
+          <label class="reg-label" for="reg-pass2">Повторите пароль</label>
+          <input id="reg-pass2" class="reg-input" type="password" name="password_confirm" minlength="8" required autocomplete="new-password" />
+        </div>
+      </div>
+
+      <!-- сила пароля + критерии -->
+      <div class="reg-inline">
+        <div class="reg-meter" style="flex:1">
+          <div class="reg-meter-bar" aria-hidden="true"><div class="reg-meter-fill" id="reg-meter"></div></div>
+          <div id="reg-meter-label" class="reg-meter-label">Сложность: —</div>
+        </div>
+        <button type="button" id="reg-toggle-visibility" class="btn btn-ghost" aria-pressed="false">Показать пароль</button>
+      </div>
+
+      <ul class="reg-criteria" id="reg-criteria" aria-label="Критерии пароля">
+        <li id="crit-length" class="bad">Не менее 10 символов</li>
+        <li id="crit-sets"   class="bad">Заглавные + строчные + цифры + символы</li>
+        <li id="crit-space"  class="bad">Без пробелов</li>
+        <li id="crit-email"  class="bad">Не совпадает с email</li>
+        <li id="crit-common" class="bad">Не из списка частых/простых паролей</li>
+        <li id="crit-seq"    class="bad">Без «12345», «qwerty», «abcdef» и т.п.</li>
+      </ul>
+
+      <!-- роль (кастомный переключатель) -->
+      <div class="reg-field">
+        <span class="reg-label">Роль</span>
+        <div id="reg-role" class="reg-role" role="group" aria-label="Выбор роли">
+          <div class="reg-role-thumb"></div>
+          <button type="button" class="reg-role-btn" data-role="worker" aria-pressed="true">worker</button>
+          <button type="button" class="reg-role-btn" data-role="admin" aria-pressed="false">admin</button>
+        </div>
+        <input type="hidden" id="reg-role-hidden" name="role" value="worker" />
+      </div>
+
+      <!-- кнопка + сообщения -->
+      <div>
+        <button id="reg-submit" class="reg-submit" type="submit">Создать аккаунт</button>
+        <div id="register-msg" class="reg-msg" aria-live="polite"></div>
+        <div id="reg-live" class="reg-live" aria-live="assertive"></div>
+      </div>
+    </form>
+
+    <p class="reg-hint" style="margin-top:10px">
+      Уже есть учётка? <a href="/ui/login">Войти</a>
+    </p>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+  <!-- ВАЖНО: core.js подключён в base.html раньше; здесь только страничный файл -->
+  <script src="/static/js/register.js?v=9" defer></script>
+{% endblock %}

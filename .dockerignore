@@ -1,0 +1,47 @@
+# Git metadata
+.git
+.gitignore
+.gitattributes
+.github
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.mypy_cache/
+.ruff_cache/
+
+# Venv
+.venv/
+env/
+venv/
+
+# Tests/coverage
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Build artifacts
+build/
+dist/
+
+# Node
+node_modules/
+
+# Local envs / secrets
+.env
+*.env.local
+*.env.*.local
+
+# OS/IDE
+.DS_Store
+.idea/
+.vscode/
+
+# Docs (если есть)
+docs/
+README_assets/

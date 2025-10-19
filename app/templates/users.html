@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block title %}Users / Clients{% endblock %}
+{% block page_id %}users{% endblock %}
+
+{% block content %}
+<section class="page-head">
+  <div>
+    <h1>Пользователи и Клиенты</h1>
+    <p class="muted">Админ-управление инвайтами и список клиентов.</p>
+  </div>
+    <div class="toolbar">
+        <!-- ПЕРЕКЛЮЧАТЕЛЬ Users / Clients -->
+        <div id="entity-switch" class="seg-switch" role="tablist" aria-label="Выбор списка">
+            <button class="seg-opt" data-tab="users" role="tab" aria-selected="true">
+            <!-- иконка user -->
+                <svg class="i" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="1.6"/>
+                    <path d="M4 21c0-4 4-6 8-6s8 2 8 6" stroke="currentColor" stroke-width="1.6"/>
+                </svg>
+                <span>Users</span>
+            </button>
+
+            <button class="seg-opt" data-tab="clients" role="tab" aria-selected="false">
+                <!-- иконка group/list -->
+                <svg class="i" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M5 8h14M5 12h10M5 16h14" stroke="currentColor" stroke-width="1.6"/>
+                </svg>
+                <span>Clients</span>
+            </button>
+
+            <!-- «ползунок» -->
+            <span class="seg-knob" aria-hidden="true"></span>
+        </div>
+    </div>
+</section>
+
+<!-- ФИЛЬТРЫ -->
+<section class="card filters-rail">
+  <div class="filters-row">
+    <div class="menu-wraping inline">
+      <span class="label">Поиск</span>
+      <input style="width: 131%; margin-right: 6rem;" id="f-q" type="text" class="input" placeholder="ID / email / role / имя / телефон / email клиента" />
+    </div>
+
+    <div class="menu-wraping users-only">
+      <span class="label">Роли</span>
+      <button id="f-role" class="btn menu-btn">
+        <svg class="i" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.6"/></svg>
+        <span id="f-role-text">Любые</span>
+      </button>
+    </div>
+
+    <div class="menu-wraping">
+      <span class="label">На странице</span>
+      <button id="f-size" class="btn menu-btn">
+        <svg class="i" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.6"/></svg>
+        <span id="f-size-text">20</span>
+      </button>
+    </div>
+
+    <div class="actions">
+      <button id="f-apply" class="btn btn-primary">Применить</button>
+      <button id="f-reset" class="btn">Сбросить</button>
+    </div>
+  </div>
+  <div class="muted small" id="f-summary"></div>
+</section>
+
+<div id="panel-users" class="grid">
+  <div class="card">
+    <h2>Создать пользователя</h2>
+    <form id="register-form" class="form" onsubmit="return false;">
+      <label>Email <input type="email" name="email" required /></label>
+      <label>Роль
+        <div class="menu-wrap inline" style="display:block">
+          <button type="button" id="reg-role" class="btn menu-btn" style="width:100%">
+            <svg class="i" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.6"/></svg>
+            <span id="reg-role-text">worker</span>
+          </button>
+        </div>
+        <input type="hidden" name="role" value="worker" />
+      </label>
+      <label>Пароль <input type="password" name="password" minlength="8" required /></label>
+      <label>Повтор пароля <input type="password" name="password2" minlength="8" required /></label>
+      <button type="submit" class="btn btn-ghost">Создать</button>
+      <p id="register-msg" class="muted"></p>
+    </form>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h2>
+        <svg class="i" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="1.6"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6" stroke="currentColor" stroke-width="1.6"/></svg>
+        Список пользователей
+      </h2>
+      <p class="sub" id="users-sub"></p>
+    </div>
+    <div class="table-wrap">
+      <table class="table table-tight" id="users-table">
+        <thead>
+          <tr><th>ID</th><th>Email</th><th>Role</th><th>Created</th><th class="ta-right">Действия</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="page-nav">
+      <button id="u-prev" class="btn">«</button>
+      <input id="u-page" class="input" type="number" min="1" value="1" style="width:80px" />
+      <button id="u-next" class="btn">»</button>
+      <span class="muted" id="u-total"></span>
+    </div>
+    <p id="users-msg" class="muted"></p>
+  </div>
+</div>
+
+<div id="panel-clients" class="grid" hidden>
+  <div class="card">
+    <div class="card-head">
+      <h2>
+        <svg class="i" viewBox="0 0 24 24" fill="none"><path d="M5 8h14M5 12h10M5 16h14" stroke="currentColor" stroke-width="1.6"/></svg>
+        Список клиентов
+      </h2>
+      <p class="sub" id="clients-sub"></p>
+    </div>
+    <div class="table-wrap">
+      <table class="table table-tight" id="clients-table">
+        <thead>
+          <tr><th>ID</th><th>Имя</th><th>Телефон</th><th>Email</th><th>Комментарий</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="page-nav">
+      <button id="c-prev" class="btn">«</button>
+      <input id="c-page" class="input" type="number" min="1" value="1" style="width:48px" />
+      <button id="c-next" class="btn">»</button>
+      <span class="muted" id="c-total"></span>
+    </div>
+    <p id="clients-msg" class="muted"></p>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+  <!-- ВАЖНО: core.js должен быть подключён в base.html раньше -->
+  <script src="/static/js/users.js?v=7" defer></script>
+{% endblock %}

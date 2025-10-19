@@ -1,0 +1,387 @@
+{% extends "base.html" %}
+{% block title %}Mini CRM — Заявка на ремонт{% endblock %}
+{% block content %}
+
+<!-- ===== Landing page (scoped) ===== -->
+<section id="ux-landing">
+
+  <!-- ===== Page-scoped styles (уникальные) ===== -->
+  <style>
+    /* ---------- Tokens (только для этой страницы) ---------- */
+    #ux-landing{
+      --ux-bg: #ffffff;
+      --ux-surface: #ffffff;
+      --ux-text: #0f172a;
+      --ux-muted: #6b7280;
+      --ux-stroke: #e5e7eb;
+      --ux-primary: #3b82f6;
+      --ux-primary-2: #60a5fa;
+      --ux-ok: #10b981;
+      --ux-bad: #ef4444;
+      --ux-shadow: 0 16px 40px rgba(30,70,150,.08);
+      --ux-rad: 16px;
+      --ux-gap: 14px;
+    }
+
+    /* ---------- Hero ---------- */
+    .ux-hero{
+      display:grid; grid-template-columns: 1.25fr 1fr; gap: 36px;
+      align-items:center; margin: 14px 0 24px;
+      background:
+        radial-gradient(900px 360px at 100% -10%, #f6fbff, transparent 60%),
+        radial-gradient(800px 300px at -20% -10%, #f4fbff, transparent 50%);
+    }
+    @media (max-width: 900px){
+      .ux-hero{ grid-template-columns: 1fr; }
+    }
+
+    .ux-hero__text h1{ margin:.1em 0 8px; font-size: clamp(28px, 3.4vw, 42px); font-weight: 800; letter-spacing:.2px; }
+    .ux-chip{
+      display:inline-block; margin-right:10px; padding:4px 10px; border-radius:999px;
+      background:linear-gradient(120deg,#e8f3ff,#f3fbff); border:1px solid #e6effa; color:#2b5aa7; font-weight:800;
+    }
+    .ux-lead{ color:var(--ux-muted); margin:8px 0 18px; }
+    .ux-cta{ display:flex; gap:12px; flex-wrap:wrap }
+
+    /* Кнопки этой страницы */
+    .ux-btn{
+      appearance:none; border:1px solid var(--ux-stroke); background:#fff; color:var(--ux-text);
+      padding:10px 14px; border-radius:12px; cursor:pointer; text-decoration:none; display:inline-flex; gap:8px; align-items:center;
+      transition: background .15s ease, border-color .15s ease, transform .04s ease, box-shadow .15s ease;
+    }
+    .ux-btn:hover{ background:#c3e1ff; border:1px solid #93c5fd; box-shadow:0 8px 20px rgba(59,130,246,.12); }
+    .ux-btn:active{ transform: translateY(1px) }
+    .ux-btn--primary{ border-color: var(--ux-primary); background: linear-gradient(120deg,var(--ux-primary),var(--ux-primary-2)); color:#fff; font-weight:800; box-shadow:0 10px 22px rgba(59,130,246,.18) }
+    .ux-btn--primary:hover{ filter:brightness(.98) }
+    .ux-btn--ghost{ border-color: transparent; background: transparent; }
+
+    .ux-badges{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; padding:0; list-style:none; }
+    @media (max-width: 700px){ .ux-badges{ grid-template-columns:1fr } }
+    .ux-badges li{
+      display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:12px;
+      background:#f7fbff; border:1px solid #eaf2fb; color:#2d3a4d;
+    }
+    .ux-hero__art{
+      min-height: 260px; border-radius: var(--ux-rad);
+      border:1px solid var(--ux-stroke); background: linear-gradient(135deg,#f0f7ff,#fff);
+      display:grid; place-items:center; overflow:hidden;
+    }
+    .ux-i{ width:18px; height:18px; }
+
+    /* ---------- Card / Section ---------- */
+    .ux-card{
+      background: var(--ux-surface); border:1px solid var(--ux-stroke); border-radius: 18px;
+      box-shadow: var(--ux-shadow); padding: 18px; margin: 18px 0;
+    }
+    .ux-card__head{ padding: 8px 2px 10px }
+    .ux-card__head h2{ display:flex; gap:10px; align-items:center; margin:0 0 6px; font-size: 22px; }
+    .ux-card__sub{ margin:0; color: var(--ux-muted); }
+
+    /* ---------- Public Form (12-col grid) ---------- */
+    .ux-form{ display:grid; gap: var(--ux-gap); }
+    .ux-row{
+      display:grid; gap: var(--ux-gap); grid-template-columns: repeat(12,minmax(0,1fr));
+    }
+    /* 1-я строка */
+    .ux-row--a .ux-field:nth-child(1){ grid-column: span 4; }
+    .ux-row--a .ux-field:nth-child(2){ grid-column: span 4; }
+    .ux-row--a .ux-field:nth-child(3){ grid-column: span 4; }
+    /* 2-я строка */
+    .ux-row--b .ux-field:nth-child(1){ grid-column: span 5; }
+    .ux-row--b .ux-field:nth-child(2){ grid-column: span 4; }
+    .ux-row--b .ux-field:nth-child(3){ grid-column: span 3; }
+
+    @media (max-width: 1000px){
+      .ux-row--a .ux-field{ grid-column: span 6; }
+      .ux-row--b .ux-field{ grid-column: span 6; }
+    }
+    @media (max-width: 700px){
+      .ux-row .ux-field{ grid-column: 1 / -1; }
+    }
+
+    .ux-field{ display:grid; gap:6px; position:relative; }
+    .ux-label{ font-size: 14px; color: #64748b; }
+    .ux-input, .ux-textarea{
+      width:100%; border:1px solid var(--ux-stroke); border-radius: 14px; background:#fff; color:var(--ux-text);
+      padding:12px 14px 12px 44px; outline:none; transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+    }
+    .ux-textarea{ padding-left:14px; min-height: 90px; resize: vertical; }
+    .ux-field:focus-within .ux-input,
+    .ux-field:focus-within .ux-textarea{ border-color: var(--ux-primary); box-shadow: 0 0 0 4px rgba(59,130,246,.12); background:#fbfdff; }
+    .ux-field.invalid .ux-input,
+    .ux-field.invalid .ux-textarea{ border-color: var(--ux-bad); animation: ux-shake .22s ease; }
+    @keyframes ux-shake{ 0%{transform:translateX(0)} 25%{transform:translateX(-3px)} 50%{transform:translateX(3px)} 100%{transform:translateX(0)} }
+
+    /* Иконки для инпутов (по data-icon) */
+    .ux-field[data-icon]::before{
+      content:""; position:absolute; left:12px; top: calc(50% + 14px); transform: translateY(-50%);
+      width:20px; height:20px; opacity:.7; background-size:20px 20px; background-repeat:no-repeat; background-position:center;
+      pointer-events:none;
+    }
+    .ux-field[data-icon="user"]::before{
+      background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="%23677389" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.5 4-7 8-7s8 2.5 8 7"/></svg>');
+    }
+    .ux-field[data-icon="phone"]::before{
+      background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="%23677389" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 5a2 2 0 012-2h3l2 5-2 1a14 14 0 007 7l1-2 5 2v3a2 2 0 01-2 2C7 21 0 14 0 5z" transform="translate(3 1)"/></svg>');
+    }
+    .ux-field[data-icon="email"]::before{
+      background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="%23677389" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>');
+    }
+    .ux-field[data-icon="title"]::before{
+      background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="%23677389" stroke-width="1.8" viewBox="0 0 24 24"><path d="M4 7h16M4 12h12M4 17h16"/></svg>');
+    }
+    .ux-field[data-icon="desc"]::before{
+      background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="%23677389" stroke-width="1.8" viewBox="0 0 24 24"><path d="M5 8h14M5 12h10M5 16h14"/></svg>');
+    }
+    
+    .ux-err{ font-size: 13px; color: var(--ux-bad); margin-top:6px; display:none; }
+    .ux-field.invalid .ux-err{ display:block; }
+    .ux-counter{ font-size:12px; color:var(--ux-muted); margin-left:auto }
+
+    .ux-divider{ height:1px; background: var(--ux-stroke); margin: 8px 0 2px; }
+    .ux-actions{ display:flex; gap:10px; align-items:center; justify-content:flex-end; flex-wrap:wrap }
+    .ux-btn--secondary{ border-color: var(--ux-stroke); background: linear-gradient(180deg,#fff,#f9fbff); }
+    .ux-btn--secondary:hover{ background:#f6faff }
+
+    /* Native picker tint */
+    input[type="datetime-local"]::-webkit-calendar-picker-indicator{ filter: hue-rotate(180deg) saturate(1.2); cursor:pointer; }
+
+    /* ---------- How it works ---------- */
+    .ux-how{ margin-top: 20px; }
+    .ux-steps{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; }
+    @media (max-width:1100px){ .ux-steps{ grid-template-columns:repeat(2,1fr) } }
+    @media (max-width:600px){ .ux-steps{ grid-template-columns:1fr } }
+    .ux-step{
+      background:#fbfdff; border:1px solid #eaf2fb; border-radius: 12px; padding:14px;
+      display:grid; gap:8px;
+    }
+    .ux-step__icon{ width:42px; height:42px; border-radius:10px; display:grid; place-items:center;
+      background:linear-gradient(120deg,#f0f7ff,#f7fbff); border:1px solid #e6effa; color:#2b5aa7; }
+    .ux-step h3{ margin:8px 0 2px; font-size:1.02rem }
+    .ux-step p{ margin:0; color:#4b5563 }
+    .ux-how__cta{ display:flex; gap:12px; justify-content:center; margin-top: 16px; }
+  </style>
+
+  <!-- ===== HERO ===== -->
+  <section class="ux-hero">
+    <div class="ux-hero__text">
+      <h1><span class="ux-chip">Mini CRM</span> Быстрая заявка на ремонт</h1>
+      <p class="ux-lead">Оставьте заявку за минуту — мы перезвоним, согласуем время и возьмём задачу в работу.</p>
+      <div class="ux-cta">
+        <a href="#public-form" class="ux-btn ux-btn--primary">
+          <svg class="ux-i" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 2 11 13" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="m22 2-7 20-4-9-9-4Z" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Оставить заявку
+        </a>
+        <a href="/ui/login" class="ux-btn ux-btn--ghost">
+          <svg class="ux-i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="11" width="18" height="10" rx="2" stroke="currentColor" stroke-width="1.8" fill="none"/><path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" stroke-width="1.8" fill="none"/></svg>
+          Войти как сотрудник
+        </a>
+      </div>
+
+      <ul id="ux-badges"class="ux-badges">
+        <li>
+          <svg class="ux-i" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 3 14h7l-1 8 11-14h-7l1-6Z" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linejoin="round"/></svg>
+          <span>Заявка за 1 минуту</span>
+        </li>
+        <li>
+          <svg class="ux-i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8" fill="none"/><path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>
+          <span>Прозрачный статус работ</span>
+        </li>
+        <li>
+          <svg class="ux-i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2" stroke="currentColor" stroke-width="1.8" fill="none"/><path d="M8 2v4M16 2v4M3 10h18" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>
+          <span>Назначение времени визита</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Анимированный «блоб» -->
+    <div class="ux-hero__art" aria-hidden="true">
+      <svg viewBox="0 0 600 360" class="ux-blob">
+        <defs>
+          <linearGradient id="ux-g1" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#7db7ff"/>
+            <stop offset="100%" stop-color="#b3e5ff"/>
+          </linearGradient>
+          <filter id="ux-wobble" x="-30%" y="-30%" width="160%" height="160%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.008" numOctaves="2" seed="7" result="n">
+              <animate attributeName="baseFrequency" values="0.008;0.012;0.009;0.008" dur="16s" repeatCount="indefinite"/>
+            </feTurbulence>
+            <feDisplacementMap in="SourceGraphic" in2="n" scale="26" xChannelSelector="R" yChannelSelector="G">
+              <animate attributeName="scale" values="18;34;22;18" dur="16s" repeatCount="indefinite"/>
+            </feDisplacementMap>
+          </filter>
+          <filter id="ux-glow" x="-60%" y="-60%" width="220%" height="220%">
+            <feGaussianBlur stdDeviation="28" result="b"/>
+            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <g filter="url(#ux-glow)" opacity="0.25">
+          <path d="M392 40c50 22 84 64 96 106 12 41 3 83-25 115-27 33-71 57-120 60-48 3-101-12-144-41-44-28-78-69-86-113-8-44 11-91 49-118 38-28 95-36 147-25 51 10 89 36 83 16z" fill="#7db7ff"/>
+        </g>
+        <g filter="url(#ux-wobble)" opacity="0.9">
+          <path d="M392 40c50 22 84 64 96 106 12 41 3 83-25 115-27 33-71 57-120 60-48 3-101-12-144-41-44-28-78-69-86-113-8-44 11-91 49-118 38-28 95-36 147-25 51 10 89 36 83 16z" fill="url(#ux-g1)"/>
+        </g>
+        <g opacity="0.5">
+          <circle cx="470" cy="110" r="20" fill="#7db7ff">
+            <animate attributeName="cx" values="460;480;470;460" dur="12s" repeatCount="indefinite"/>
+            <animate attributeName="r"  values="16;22;18;16"      dur="12s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="120" cy="250" r="14" fill="#b3e5ff">
+            <animate attributeName="cy" values="245;260;252;245" dur="10s" repeatCount="indefinite"/>
+            <animate attributeName="r"  values="10;18;12;10"     dur="10s" repeatCount="indefinite"/>
+          </circle>
+        </g>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ===== PUBLIC FORM ===== -->
+  <section id="public-form" class="ux-card">
+    <div class="ux-card__head">
+      <h2>
+        <svg class="ux-i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.8" fill="none"/><path d="M7 8h10M7 12h10M7 16h6" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>
+        Публичная заявка
+      </h2>
+      <p class="ux-card__sub">Заполните контактные данные и кратко опишите проблему. Это займет меньше минуты.</p>
+    </div>
+
+    <form id="public-request-form" class="ux-form" novalidate>
+      <!-- row A -->
+      <div class="ux-row ux-row--a">
+        <label class="ux-field" data-icon="user">
+          <span class="ux-label">Ваше имя</span>
+          <input class="ux-input" type="text" name="name" required placeholder="Иван" minlength="2" maxlength="80"/>
+          <div class="ux-err" data-for="name"></div>
+        </label>
+
+        <label class="ux-field" data-icon="phone">
+          <span class="ux-label">Телефон</span>
+          <input class="ux-input" type="tel" name="phone" placeholder="+380..." inputmode="tel" maxlength="20"/>
+          <div class="ux-err" data-for="phone"></div>
+        </label>
+
+        <label class="ux-field" data-icon="email">
+          <span class="ux-label">Email</span>
+          <input class="ux-input" type="email" name="email" placeholder="you@example.com" maxlength="120"/>
+          <div class="ux-err" data-for="email"></div>
+        </label>
+      </div>
+
+      <!-- comment -->
+      <label class="ux-field">
+        <span class="ux-label">Комментарий</span>
+        <textarea class="ux-textarea" name="comment" rows="2" placeholder="Дополнительные детали" maxlength="300"></textarea>
+        <div class="ux-counter"><span id="cmt-left">300</span> символов осталось</div>
+      </label>
+
+      <!-- row B -->
+      <div class="ux-row ux-row--b">
+        <label class="ux-field" data-icon="title">
+          <span class="ux-label">Заголовок заявки</span>
+          <input class="ux-input" type="text" name="title" required placeholder="Не включается стиральная машина" minlength="5" maxlength="120"/>
+          <div class="ux-err" data-for="title"></div>
+        </label>
+
+        <label class="ux-field" data-icon="desc">
+          <span class="ux-label">Описание</span>
+          <input class="ux-input" type="text" name="description" placeholder="Опишите проблему подробнее" maxlength="200"/>
+          <div class="ux-err" data-for="description"></div>
+        </label>
+
+        <label class="ux-field" data-icon="date">
+          <span class="ux-label">Желаемое время</span>
+          <input class="ux-input" type="datetime-local" name="scheduled_at"/>
+          <div class="ux-err" data-for="scheduled_at"></div>
+        </label>
+      </div>
+
+      <!-- honeypot -->
+      <div style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden" aria-hidden="true">
+        <label>Ваш сайт <input type="text" name="website"/></label>
+      </div>
+
+      <div class="ux-divider"></div>
+
+      <div class="ux-actions">
+        <button type="button" id="pf-clear" class="ux-btn ux-btn--secondary">Очистить</button>
+        <button type="submit" id="pf-submit" class="ux-btn ux-btn--primary">
+          <svg class="ux-i" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 2 11 13" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="m22 2-7 20-4-9-9-4Z" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Отправить
+        </button>
+        <p id="public-msg" class="ux-card__sub" role="status" aria-live="polite"></p>
+      </div>
+    </form>
+  </section>
+
+  <!-- ===== HOW IT WORKS ===== -->
+  <section class="ux-how">
+    <h2>Как это работает</h2>
+    <div class="ux-steps">
+      <article class="ux-step">
+        <div class="ux-step__icon">
+          <svg class="ux-i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v8m0-8a6 6 0 0 1 6 6v8a6 6 0 0 1-12 0V8a6 6 0 0 1 6-6Z" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/><path d="M12 10v3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>
+        </div>
+        <h3>1. Клиент оставляет заявку</h3>
+        <p>Через форму выше: имя, контакты, краткое описание и желаемое время.</p>
+      </article>
+
+      <article class="ux-step">
+        <div class="ux-step__icon">
+          <svg class="ux-i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="8" r="4" stroke="currentColor" stroke-width="1.8" fill="none"/><path d="M2 22a6 6 0 0 1 12 0" stroke="currentColor" stroke-width="1.8" fill="none"/><path d="M18.5 12.5v3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M17 16h3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </div>
+        <h3>2. Админ назначает исполнителя</h3>
+        <p>Админ видит новые тикеты и распределяет их по сотрудникам.</p>
+      </article>
+
+      <article class="ux-step">
+        <div class="ux-step__icon">
+          <svg class="ux-i" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 7a5 5 0 0 1-7 7L6 22l-4-4 8-8a5 5 0 0 1 7-7l-2 2 2 2 2-2Z" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linejoin="round"/></svg>
+        </div>
+        <h3>3. Исполнитель ведёт работу</h3>
+        <p>Статусы: <em>new</em> → <em>in&nbsp;progress</em> → <em>done</em>. Сотрудник видит только свои тикеты.</p>
+      </article>
+
+      <article class="ux-step">
+        <div class="ux-step__icon">
+          <svg class="ux-i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8" fill="none"/><path d="m8 12 3 3 5-6" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>
+        </div>
+        <h3>4. Готово</h3>
+        <p>Заявка закрывается, клиент получает результат — быстро и прозрачно.</p>
+      </article>
+    </div>
+
+    <div class="ux-how__cta">
+      <a href="/ui/login" class="ux-btn">Войти</a>
+      <a href="#ux-badges" class="ux-btn ux-btn--primary">Создать заявку</a>
+    </div>
+  </section>
+
+</section>
+{% endblock %}
+
+{% block scripts %}
+  <!-- Твой существующий JS без правок -->
+  <script src="/static/js/home.js?v=5"></script>
+  <script>
+    // Небольшие UX-штрихи: счётчик символов и «очистить»
+    document.addEventListener("DOMContentLoaded", () => {
+      const cmt = document.querySelector('#public-request-form textarea[name="comment"]');
+      const left = document.getElementById('cmt-left');
+      const clearBtn = document.getElementById('pf-clear');
+
+      if (cmt && left){
+        const max = Number(cmt.getAttribute('maxlength') || 300);
+        const upd = () => { left.textContent = Math.max(0, max - (cmt.value?.length || 0)); };
+        cmt.addEventListener('input', upd); upd();
+      }
+      clearBtn?.addEventListener('click', () => {
+        const f = document.getElementById('public-request-form');
+        f?.reset();
+        left && (left.textContent = '300');
+        document.getElementById('public-msg')?.textContent = '';
+        // убрать визуальные ошибки, если были
+        document.querySelectorAll('#public-request-form .ux-field.invalid').forEach(el => el.classList.remove('invalid'));
+      });
+    });
+  </script>
+{% endblock %}

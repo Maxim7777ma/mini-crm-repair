@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.build/
+dist/
+build/
+.eggs/
+
+# Venv
+.venv/
+env/
+venv/
+
+# IDE/OS
+.DS_Store
+.idea/
+.vscode/
+Thumbs.db
+
+# Tests/Coverage
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Typing/Lint caches
+.mypy_cache/
+.ruff_cache/
+
+# Env & secrets
+.env
+*.env.local
+*.env.*.local
+
+# Node (если вдруг появится фронт)
+node_modules/
+
+# Alembic
+alembic/versions/__pycache__/
+
+# Logs
+*.log
+logs/

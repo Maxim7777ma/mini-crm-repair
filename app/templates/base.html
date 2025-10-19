@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <title>{% block title %}Mini CRM{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="/static/css/style.css" rel="stylesheet" />
+</head>
+<body>
+<header class="site-header">
+  <div class="container header-inner">
+    <a class="brand" href="/ui">Mini CRM</a>
+
+    <!-- Кнопка-бургер (показывается только ≤600px) -->
+    <button
+      id="nav-burger"
+      class="nav-burger"
+      aria-label="Открыть меню"
+      aria-controls="mobile-menu"
+      aria-expanded="false"
+    >
+      <svg viewBox="0 0 24 24" class="i" aria-hidden="true">
+        <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+
+    <!-- Десктоп-меню -->
+    <nav class="nav nav-desktop">
+      <a class="nav-link" href="/ui">Главная</a>
+      <a class="nav-link" href="/ui/tickets" data-auth>Тикеты</a>
+      <!-- видно ТОЛЬКО админу -->
+      <a class="nav-link" href="/ui/users" data-auth data-admin>Пользователи</a>
+
+      <a class="nav-link" href="/ui/login" data-guest>Войти</a>
+      <button class="btn" id="logout-btn" data-auth>Выйти</button>
+    </nav>
+  </div>
+
+  <!-- Мобильное меню (панель + фон) -->
+  <div id="mobile-backdrop" class="mobile-backdrop" hidden></div>
+  <nav id="mobile-menu" class="mobile-menu" hidden aria-hidden="true">
+    <div class="mobile-menu__inner">
+      <a class="nav-link" href="/ui">Главная</a>
+      <a class="nav-link" href="/ui/tickets" data-auth>Тикеты</a>
+      <!-- видно ТОЛЬКО админу -->
+      <a class="nav-link" href="/ui/users" data-auth data-admin>Пользователи</a>
+
+      <a class="nav-link" href="/ui/login" data-guest>Войти</a>
+      <button class="btn" id="logout-btn-mobile" data-auth>Выйти</button>
+    </div>
+  </nav>
+</header>
+
+
+  <main class="site-main">
+    <div class="container">
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>© {{ 2025 }} Mini CRM • TZ проект</p>
+    </div>
+  </footer>
+
+  <div id="toast" class="toast" hidden>OK</div>
+
+<script src="/static/js/common.js"></script>
+{% block scripts %}{% endblock %}
+
+</body>
+</html>
