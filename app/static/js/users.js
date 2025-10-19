@@ -13,61 +13,118 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  // ---------- Tabs (Users / Clients)
-// ---------- Switch (Users / Clients)
-const switchEl   = $("#entity-switch"); // <— новый контейнер
-const optUsers   = switchEl?.querySelector('[data-tab="users"]');
-const optClients = switchEl?.querySelector('[data-tab="clients"]');
-const knob       = switchEl?.querySelector(".seg-knob");
+  // ---------- Helpers ----------
+  const $ = (sel, root = document) => root.querySelector(sel);
 
-// панели остаются те же id
-const paneUsers   = $("#panel-users");
-const paneClients = $("#panel-clients");
+  // Впрыснем стиль и разметку модалки один раз
+  function ensureUserEditModal() {
+    if (document.getElementById("ue-overlay")) return;
 
-const TAB_KEY = "uc_tab_v1";
+    const style = document.createElement("style");
+    style.textContent = `
+      .ue-overlay{position:fixed;inset:0;background:rgba(15,23,42,.4);backdrop-filter:saturate(120%) blur(2px);display:none;align-items:center;justify-content:center;z-index:1000}
+      .ue-overlay.show{display:flex}
+      .ue-modal{width:min(560px,92vw);background:#fff;border-radius:16px;box-shadow:0 30px 60px rgba(2,6,23,.2);padding:18px}
+      .ue-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+      .ue-title{font-size:18px;font-weight:600}
+      .ue-close{appearance:none;background:transparent;border:0;padding:6px 10px;cursor:pointer}
+      .ue-grid{display:grid;grid-template-columns:1fr;gap:12px}
+      .ue-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+      @media (max-width:640px){.ue-row{grid-template-columns:1fr}}
+      .ue-actions{display:flex;align-items:center;gap:10px;justify-content:flex-end;margin-top:12px}
+      .ue-muted{color:#6b7280;font-size:12.5px}
+      .ue-error{color:#dc2626;font-size:13px;display:none}
+      .ue-error.show{display:block}
+    `;
+    document.head.appendChild(style);
 
-// 1) Применяем выбранную вкладку к интерфейсу (двигаем «ползунок», меняем aria)
-function applyTabToUI(t){
-  if (t === "clients"){
-    switchEl?.classList.add("is-clients");                  // двигает .seg-knob вправо (через CSS)
-    optUsers?.setAttribute("aria-selected", "false");
-    optClients?.setAttribute("aria-selected", "true");
-    paneUsers.hidden   = true;
-    paneClients.hidden = false;
-    $(".users-only")?.classList.add("hidden");              // скрыть фильтр ролей в режиме клиентов
-  } else {
-    switchEl?.classList.remove("is-clients");               // knob влево
-    optUsers?.setAttribute("aria-selected", "true");
-    optClients?.setAttribute("aria-selected", "false");
-    paneUsers.hidden   = false;
-    paneClients.hidden = true;
-    $(".users-only")?.classList.remove("hidden");           // показать фильтр ролей
+    const wrap = document.createElement("div");
+    wrap.innerHTML = `
+      <div id="ue-overlay" class="ue-overlay" role="dialog" aria-modal="true" aria-labelledby="ue-title">
+        <div class="ue-modal">
+          <div class="ue-head">
+            <div class="ue-title" id="ue-title">Редактирование пользователя</div>
+            <button class="ue-close" id="ue-close" aria-label="Закрыть">&times;</button>
+          </div>
+
+          <form id="ue-form" class="ue-grid">
+            <input type="hidden" name="id" />
+
+            <label>Email
+              <input class="input" type="email" name="email" placeholder="user@example.com" />
+            </label>
+
+            <div class="ue-row">
+              <label>Пароль (если нужно сменить)
+                <input class="input" type="password" name="password" minlength="8" placeholder="минимум 8 символов" />
+              </label>
+
+              <label>Роль
+                <div class="menu-wrap inline" style="display:block">
+                  <button type="button" id="ue-role-btn" class="btn menu-btn" style="width:100%">
+                    <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.6" fill="none"/></svg>
+                    <span id="ue-role-text">worker</span>
+                  </button>
+                </div>
+                <input type="hidden" name="role" value="worker" />
+              </label>
+            </div>
+
+            <div class="ue-muted">Оставь поле пароля пустым, если менять не нужно.</div>
+            <div id="ue-err" class="ue-error"></div>
+
+            <div class="ue-actions">
+              <button type="button" class="btn" id="ue-cancel">Отмена</button>
+              <button type="submit" class="btn btn-primary">Сохранить</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(wrap.firstElementChild);
   }
-}
+  ensureUserEditModal();
 
-// 2) Сетtab: сохраняем состояние и применяем к UI
-function setTab(t){
-  localStorage.setItem(TAB_KEY, t);
-  applyTabToUI(t);
+  // ---------- Tabs (Users / Clients)
+  const switchEl   = $("#entity-switch");
+  const optUsers   = switchEl?.querySelector('[data-tab="users"]');
+  const optClients = switchEl?.querySelector('[data-tab="clients"]');
 
-  // Хочешь — сразу подгружай списки при переключении:
-  if (typeof loadUsers === "function" && t === "users")   loadUsers();
-  if (typeof loadClients === "function" && t === "clients") loadClients();
-}
+  const paneUsers   = $("#panel-users");
+  const paneClients = $("#panel-clients");
 
-// 3) Навешиваем клики на обе кнопки переключателя
-optUsers?.addEventListener("click",   () => setTab("users"));
-optClients?.addEventListener("click", () => setTab("clients"));
+  const TAB_KEY = "uc_tab_v1";
 
-// 4) Инициализация: берём из localStorage или по умолчанию "users"
-applyTabToUI(localStorage.getItem(TAB_KEY) || "users");
-
-// 5) Доступность с клавиатуры: ← / →
-switchEl?.addEventListener("keydown", (e) => {
-  if (e.key === "ArrowRight") setTab("clients");
-  if (e.key === "ArrowLeft")  setTab("users");
-});
-
+  function applyTabToUI(t){
+    if (t === "clients"){
+      switchEl?.classList.add("is-clients");
+      optUsers?.setAttribute("aria-selected", "false");
+      optClients?.setAttribute("aria-selected", "true");
+      paneUsers.hidden   = true;
+      paneClients.hidden = false;
+      $(".users-only")?.classList.add("hidden");
+    } else {
+      switchEl?.classList.remove("is-clients");
+      optUsers?.setAttribute("aria-selected", "true");
+      optClients?.setAttribute("aria-selected", "false");
+      paneUsers.hidden   = false;
+      paneClients.hidden = true;
+      $(".users-only")?.classList.remove("hidden");
+    }
+  }
+  function setTab(t){
+    localStorage.setItem(TAB_KEY, t);
+    applyTabToUI(t);
+    if (typeof loadUsers === "function" && t === "users")   loadUsers();
+    if (typeof loadClients === "function" && t === "clients") loadClients();
+  }
+  optUsers?.addEventListener("click",   () => setTab("users"));
+  optClients?.addEventListener("click", () => setTab("clients"));
+  applyTabToUI(localStorage.getItem(TAB_KEY) || "users");
+  switchEl?.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowRight") setTab("clients");
+    if (e.key === "ArrowLeft")  setTab("users");
+  });
 
   // ---------- Filters (shared UI)
   const qInput = $("#f-q");
@@ -79,22 +136,18 @@ switchEl?.addEventListener("keydown", (e) => {
   const resetBtn = $("#f-reset");
   const fSummary = $("#f-summary");
 
-  // отдельные состояния для users и clients
   const KEY_USERS   = "filters_users_v2";
   const KEY_CLIENTS = "filters_clients_v2";
 
   function loadState(key, def){ try{ return JSON.parse(localStorage.getItem(key)||"null") || def; }catch{ return def; } }
   function saveState(key, v){ localStorage.setItem(key, JSON.stringify(v)); }
 
-  // базовые значения:
   let stateUsers = loadState(KEY_USERS, { q:"", roles:[], page:1, page_size:20 });
   let stateClients = loadState(KEY_CLIENTS, { q:"", page:1, page_size:20 });
 
-  // изменяемые (черновики) — чтобы Apply/Reset работали
   let draftUsers = structuredClone(stateUsers);
   let draftClients = structuredClone(stateClients);
 
-  // подстановки в UI под активный таб
   function syncFiltersUI(){
     const tab = localStorage.getItem(TAB_KEY) || "users";
     if (tab === "users"){
@@ -112,7 +165,6 @@ switchEl?.addEventListener("keydown", (e) => {
   }
   syncFiltersUI();
 
-  // меню размеров страницы
   sizeBtn?.addEventListener("click", () => {
     const items = [{value:"5",label:"5"},{value:"10",label:"10"},{value:"20",label:"20"},{value:"50",label:"50"}];
     openPortalMenu(sizeBtn, items, (val)=>{
@@ -123,7 +175,6 @@ switchEl?.addEventListener("keydown", (e) => {
     });
   });
 
-  // меню ролей (только users; multi)
   roleBtn?.addEventListener("click", () => {
     const tab = localStorage.getItem(TAB_KEY) || "users";
     if (tab !== "users") return;
@@ -137,7 +188,6 @@ switchEl?.addEventListener("keydown", (e) => {
     }, { multi:true, selected:[...(draftUsers.roles||[])] });
   });
 
-  // поиск
   qInput?.addEventListener("change", () => {
     const tab = localStorage.getItem(TAB_KEY) || "users";
     if (tab === "users"){ draftUsers.q = qInput.value.trim(); draftUsers.page = 1; }
@@ -145,7 +195,6 @@ switchEl?.addEventListener("keydown", (e) => {
     syncFiltersUI();
   });
 
-  // применить / сброс
   applyBtn?.addEventListener("click", () => {
     const tab = localStorage.getItem(TAB_KEY) || "users";
     if (tab === "users"){
@@ -176,7 +225,6 @@ switchEl?.addEventListener("keydown", (e) => {
   const uNext  = $("#u-next");
   const uPage  = $("#u-page");
   const uTotal = $("#u-total");
-  const uMsg   = $("#users-msg");
   const usersSub = $("#users-sub");
 
   function usersQuery(){
@@ -186,14 +234,12 @@ switchEl?.addEventListener("keydown", (e) => {
     p.append("page", String(stateUsers.page));
     p.append("page_size", String(stateUsers.page_size));
     return `/users?${p.toString()}`;
-    // NB: нужно быть админом -> у нас проверка выше
   }
 
   async function loadUsers(){
     try{
       const data = await api(usersQuery());
       renderUsers(data);
-      console.log("📋 renderUsers:", data);
     }catch(err){
       uBody.innerHTML = `<tr><td colspan="5" class="muted">Ошибка: ${err.message}</td></tr>`;
     }
@@ -273,7 +319,6 @@ switchEl?.addEventListener("keydown", (e) => {
       regMsg.textContent = "Создан ✅";
       showToast("Пользователь создан");
       regForm.reset();
-      // вернуть роль по умолчанию:
       if (regRoleHidden) regRoleHidden.value = "worker";
       if (regRoleText) regRoleText.textContent = "worker";
       loadUsers();
@@ -282,6 +327,7 @@ switchEl?.addEventListener("keydown", (e) => {
     }
   });
 
+  // Удаление пользователя
   uBody?.addEventListener("click", async (e) => {
     const b = e.target.closest(".u-delete");
     if (!b) return;
@@ -291,7 +337,6 @@ switchEl?.addEventListener("keydown", (e) => {
     try{
       await api(`/users/${id}`, { method:"DELETE" });
       showToast("Удалён");
-      // локально удалить строку
       const tr = uBody.querySelector(`tr[data-id="${id}"]`);
       if (tr) tr.remove();
     }catch(err){
@@ -299,32 +344,101 @@ switchEl?.addEventListener("keydown", (e) => {
     }
   });
 
-  // === РЕДАКТИРОВАНИЕ ПОЛЬЗОВАТЕЛЯ ===
-uBody?.addEventListener("click", async (e) => {
-  const b = e.target.closest(".u-edit");
-  if (!b) return;
-  const id = Number(b.dataset.id);
+  // ====== РЕДАКТИРОВАНИЕ ПОЛЬЗОВАТЕЛЯ: модалка ======
+  const ueOverlay   = $("#ue-overlay");
+  const ueForm      = $("#ue-form");
+  const ueClose     = $("#ue-close");
+  const ueCancel    = $("#ue-cancel");
+  const ueRoleBtn   = $("#ue-role-btn");
+  const ueRoleText  = $("#ue-role-text");
+  const ueErr       = $("#ue-err");
 
-  const email = prompt("Введите новый email (оставь пустым, если не нужно менять):");
-  const password = prompt("Введите новый пароль (оставь пустым, если не нужно менять):");
-  const role = prompt("Введите новую роль (admin / worker, оставь пустым, если не нужно менять):");
-
-  try {
-    await api(`/users/${id}`, {
-      method: "PUT",
-      body: {
-        email: email || null,
-        password: password || null,
-        role: role || null
-      }
-    });
-    showToast("Пользователь обновлён");
-    loadUsers();
-  } catch (err) {
-    alert("Ошибка: " + err.message);
+  function ueShow() {
+    ueOverlay?.classList.add("show");
+    ueForm?.querySelector('input[name="email"]')?.focus();
+    document.addEventListener("keydown", onEscClose);
   }
-});
+  function ueHide() {
+    ueOverlay?.classList.remove("show");
+    ueErr?.classList.remove("show");
+    ueErr.textContent = "";
+    ueForm?.reset();
+    document.removeEventListener("keydown", onEscClose);
+  }
+  function onEscClose(e){ if (e.key === "Escape") ueHide(); }
+  ueClose?.addEventListener("click", ueHide);
+  ueCancel?.addEventListener("click", ueHide);
+  ueOverlay?.addEventListener("click", (e)=>{ if (e.target === ueOverlay) ueHide(); });
 
+  ueRoleBtn?.addEventListener("click", () => {
+    openPortalMenu(ueRoleBtn, [
+      { value: "worker", label: "worker" },
+      { value: "admin",  label: "admin"  },
+    ], (val) => {
+      ueForm.querySelector('input[name="role"]').value = val;
+      ueRoleText.textContent = val;
+    });
+  });
+
+  // открыть модалку по клику "Редактировать"
+  uBody?.addEventListener("click", async (e) => {
+    const btn = e.target.closest(".u-edit");
+    if (!btn) return;
+
+    const id = Number(btn.dataset.id);
+    const tr = uBody.querySelector(`tr[data-id="${id}"]`);
+    const email = tr?.children?.[1]?.textContent?.trim() || "";
+    const role  = tr?.children?.[2]?.textContent?.trim() || "worker";
+
+    ueForm.querySelector('input[name="id"]').value = String(id);
+    ueForm.querySelector('input[name="email"]').value = email;
+    ueForm.querySelector('input[name="role"]').value  = role;
+    ueRoleText.textContent = role;
+    ueForm.querySelector('input[name="password"]').value = "";
+
+    ueShow();
+  });
+
+  // сабмит модалки
+  ueForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    ueErr?.classList.remove("show");
+    ueErr.textContent = "";
+
+    const id        = Number(ueForm.querySelector('input[name="id"]').value);
+    const email     = ueForm.querySelector('input[name="email"]').value.trim();
+    const password  = ueForm.querySelector('input[name="password"]').value;
+    const role      = ueForm.querySelector('input[name="role"]').value;
+
+    const tr = uBody.querySelector(`tr[data-id="${id}"]`);
+    const currentEmail = tr?.children?.[1]?.textContent?.trim() || "";
+    const currentRole  = tr?.children?.[2]?.textContent?.trim() || "";
+
+    const payload = {};
+    if (email && email !== currentEmail) payload.email = email;
+    if (role && role !== currentRole)    payload.role  = role;
+    if (password && password.length >= 8) payload.password = password;
+    if (password && password.length > 0 && password.length < 8) {
+      ueErr.textContent = "Пароль должен быть не короче 8 символов";
+      ueErr.classList.add("show");
+      return;
+    }
+    if (Object.keys(payload).length === 0) {
+      showToast("Нет изменений");
+      ueHide();
+      return;
+    }
+
+    try {
+      await api(`/users/${id}`, { method: "PUT", body: payload });
+      showToast("Пользователь обновлён");
+      ueHide();
+      loadUsers();
+    } catch (err) {
+      ueErr.textContent = err?.message || "Ошибка сохранения";
+      ueErr.classList.add("show");
+    }
+  });
 
   // ---------- Clients: таблица, пагинация
   const cTable = $("#clients-table");
@@ -333,7 +447,6 @@ uBody?.addEventListener("click", async (e) => {
   const cNext  = $("#c-next");
   const cPage  = $("#c-page");
   const cTotal = $("#c-total");
-  const cMsg   = $("#clients-msg");
   const clientsSub = $("#clients-sub");
 
   function clientsQuery(){
@@ -394,6 +507,5 @@ uBody?.addEventListener("click", async (e) => {
   });
 
   // ---------- начальная загрузка
-  // грузим оба списка, чтобы при переключении вкладки всё было
   await Promise.all([loadUsers(), loadClients()]);
 });
