@@ -525,6 +525,8 @@ node_modules/
 * **Hot reload не реагирует** — уже включён `WATCHFILES_FORCE_POLLING=true` в Compose для macOS/Windows.
 
 
+
+
 ---
 
 ## Лицензия
