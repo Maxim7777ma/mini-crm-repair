@@ -60,13 +60,17 @@ async def delete_user(user_id: int, _: User = Depends(admin_required), db: Async
 async def update_user(
     user_id: int,
     body: UserUpdate,
-    _: User = Depends(admin_required),
+    current: User = Depends(admin_required),
     db: AsyncSession = Depends(get_session),
 ):
     user = (await db.execute(select(User).where(User.id == user_id))).scalar_one_or_none()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
+    # ⛔️ Нельзя менять другого администратора
+    if user.role == UserRole.admin and user.id != current.id:
+        raise HTTPException(status_code=403, detail="Нельзя изменять другого администратора")
+    
     if body.email:
         user.email = body.email
     if body.password:

@@ -390,6 +390,31 @@ document.addEventListener("DOMContentLoaded", async () => {
     const email = tr?.children?.[1]?.textContent?.trim() || "";
     const role  = tr?.children?.[2]?.textContent?.trim() || "worker";
 
+    const me = getMe(); // уже есть ранее; здесь ещё раз достанем
+    const isOtherAdmin = role === "admin" && id !== (me?.id);
+
+    if (isOtherAdmin) {
+        const originalText = btn.textContent;
+        const originalBg   = btn.style.backgroundColor;
+        const originalCol  = btn.style.color;
+
+        btn.textContent = "Нельзя";
+        btn.style.backgroundColor = "#ef4444"; // красная
+        btn.style.color = "#fff";
+        btn.disabled = true;
+
+        showToast("Нельзя редактировать другого администратора");
+
+        setTimeout(() => {
+          btn.textContent = originalText;
+          btn.style.backgroundColor = originalBg;
+          btn.style.color = originalCol;
+          btn.disabled = false;
+        }, 5000);
+
+        return; // не открываем модалку
+    }    
+
     ueForm.querySelector('input[name="id"]').value = String(id);
     ueForm.querySelector('input[name="email"]').value = email;
     ueForm.querySelector('input[name="role"]').value  = role;
@@ -435,9 +460,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       ueHide();
       loadUsers();
     } catch (err) {
-      ueErr.textContent = err?.message || "Ошибка сохранения";
+      const msg = err?.message || "";
+      if (msg.includes("другого администратора")) showToast(msg);
+      ueErr.textContent = msg || "Ошибка сохранения";
       ueErr.classList.add("show");
     }
+
   });
 
   // ---------- Clients: таблица, пагинация
