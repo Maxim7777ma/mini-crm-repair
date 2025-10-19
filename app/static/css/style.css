@@ -437,9 +437,14 @@ body.no-scroll { overflow: hidden; }
   .nav-desktop { display: none; }
   .nav-burger { display: inline-flex; align-items: center; gap: 6px; }
   .ux-row {
-    display: flex;
+    display: flex !important;
     gap: var(--ux-gap);
     grid-template-columns: repeat(12, minmax(0, 1fr));
+    flex-direction: column !important;
+  }
+  .ux-form {
+    display: flex;
+    gap: var(--ux-gap);
     flex-direction: column;
   }
   .filters-row {
