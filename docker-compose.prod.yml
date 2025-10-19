@@ -3,7 +3,8 @@ services:
     image: maxim7777ma/mini-crm-repair:latest
     env_file: .env
     depends_on:
-      - db
+      db:
+        condition: service_started
     ports:
       - "8000:8000"
     restart: unless-stopped
@@ -14,10 +15,10 @@ services:
       POSTGRES_DB: repair_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-    ports:
-      - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
     restart: unless-stopped
 
 volumes:
