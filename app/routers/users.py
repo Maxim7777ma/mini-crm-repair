@@ -7,7 +7,7 @@ from app.deps import admin_required, paginate_params
 from app.security import hash_password
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select, delete, func, or_, cast, String
-
+from app.schemas import UserUpdate  
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -53,3 +53,27 @@ async def list_users(
 async def delete_user(user_id: int, _: User = Depends(admin_required), db: AsyncSession = Depends(get_session)):
     await db.execute(delete(User).where(User.id == user_id))
     await db.commit()
+
+
+
+@router.put("/{user_id}", response_model=UserOut)
+async def update_user(
+    user_id: int,
+    body: UserUpdate,
+    _: User = Depends(admin_required),
+    db: AsyncSession = Depends(get_session),
+):
+    user = (await db.execute(select(User).where(User.id == user_id))).scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if body.email:
+        user.email = body.email
+    if body.password:
+        user.password_hash = hash_password(body.password)
+    if body.role:
+        user.role = UserRole(body.role)
+
+    await db.commit()
+    await db.refresh(user)
+    return user

@@ -437,3 +437,6 @@ body.no-scroll { overflow: hidden; }
   .nav-desktop { display: none; }
   .nav-burger { display: inline-flex; align-items: center; gap: 6px; }
 }
+.u-edit {
+  display: inline-block !important;
+}

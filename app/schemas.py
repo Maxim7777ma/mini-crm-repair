@@ -43,6 +43,14 @@ class UserOut(BaseModel):
             return v.value
         return v
 
+
+
+
+class UserUpdate(BaseModel):
+    email: EmailStr | None = None
+    password: str | None = None
+    role: str | None = None
+
 # ====== CLIENT ======
 class ClientIn(BaseModel):
     name: str
