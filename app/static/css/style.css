@@ -455,6 +455,7 @@ body.no-scroll { overflow: hidden; }
     justify-content: space-between;
     flex-direction: column;
     gap: 1rem;
+    align-items: stretch;
   }
   .btn-ghost {
     font-weight: bold;
