@@ -42,6 +42,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const mTitle = $("#tm-title");
   const fEdit = $("#tm-edit-form");
   const fEditMsg = $("#tm-edit-msg");
+  let lastFocus = null;
 
   // ---------- Filters: draft + applied
   const STORAGE_KEY = "tickets_filters_v4";
@@ -387,12 +388,32 @@ document.addEventListener("DOMContentLoaded", async () => {
     const t = DATA.find(x => x.id === id);
     if (!t){ return; }
     fillModal(t);
+
+    // запомним элемент, у которого был фокус до открытия
+    lastFocus = document.activeElement;
+
+    // показываем модалку
     modal.hidden = false;
     modal.setAttribute("aria-hidden", "false");
+
+    // переведём фокус на содержимое модалки
+    const content = modal.querySelector(".modal__content");
+    content && content.focus();
   }
   function closeDetails(){
-    modal.hidden = true;
+    // вернуть фокус туда, откуда открывали (если элемент ещё в DOM)
+    if (lastFocus && document.contains(lastFocus)) {
+      lastFocus.focus();
+    } else {
+      // запасной вариант: фокус на кнопку «Обновить» или любую безопасную
+      document.getElementById("reload")?.focus();
+    }
+
+    // теперь можно скрывать модалку
     modal.setAttribute("aria-hidden", "true");
+    modal.hidden = true;
+
+    // очистим сообщения
     fEditMsg.textContent = "";
   }
   mClose?.addEventListener("click", closeDetails);

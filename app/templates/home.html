@@ -378,7 +378,10 @@
         const f = document.getElementById('public-request-form');
         f?.reset();
         left && (left.textContent = '300');
-        document.getElementById('public-msg')?.textContent = '';
+
+        const pm = document.getElementById('public-msg'); // ✅ берём ссылку
+        if (pm) pm.textContent = '';                      // ✅ присваиваем безопасно
+
         // убрать визуальные ошибки, если были
         document.querySelectorAll('#public-request-form .ux-field.invalid').forEach(el => el.classList.remove('invalid'));
       });
