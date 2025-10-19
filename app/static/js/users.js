@@ -193,6 +193,7 @@ switchEl?.addEventListener("keydown", (e) => {
     try{
       const data = await api(usersQuery());
       renderUsers(data);
+      console.log("📋 renderUsers:", data);
     }catch(err){
       uBody.innerHTML = `<tr><td colspan="5" class="muted">Ошибка: ${err.message}</td></tr>`;
     }
@@ -210,6 +211,7 @@ switchEl?.addEventListener("keydown", (e) => {
           <td>${u.role}</td>
           <td>${new Date(u.created_at).toLocaleString()}</td>
           <td class="ta-right">
+            <button class="btn btn-ghost u-edit" data-id="${u.id}">Редактировать</button>
             <button class="btn btn-ghost u-delete" data-id="${u.id}">Удалить</button>
           </td>
         </tr>
@@ -296,6 +298,33 @@ switchEl?.addEventListener("keydown", (e) => {
       alert(err.message || "Ошибка удаления");
     }
   });
+
+  // === РЕДАКТИРОВАНИЕ ПОЛЬЗОВАТЕЛЯ ===
+uBody?.addEventListener("click", async (e) => {
+  const b = e.target.closest(".u-edit");
+  if (!b) return;
+  const id = Number(b.dataset.id);
+
+  const email = prompt("Введите новый email (оставь пустым, если не нужно менять):");
+  const password = prompt("Введите новый пароль (оставь пустым, если не нужно менять):");
+  const role = prompt("Введите новую роль (admin / worker, оставь пустым, если не нужно менять):");
+
+  try {
+    await api(`/users/${id}`, {
+      method: "PUT",
+      body: {
+        email: email || null,
+        password: password || null,
+        role: role || null
+      }
+    });
+    showToast("Пользователь обновлён");
+    loadUsers();
+  } catch (err) {
+    alert("Ошибка: " + err.message);
+  }
+});
+
 
   // ---------- Clients: таблица, пагинация
   const cTable = $("#clients-table");
